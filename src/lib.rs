@@ -41,3 +41,9 @@ pub use crate::serde_json::*;
 mod toml;
 #[cfg(feature = "toml")]
 pub use crate::toml::*;
+
+#[cfg(feature = "glam")]
+pub mod glam;
+
+#[cfg(feature = "intmap")]
+pub mod intmap;

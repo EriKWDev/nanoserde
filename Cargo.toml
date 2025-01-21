@@ -10,7 +10,8 @@ rust-version = "1.81.0"
 repository = "https://github.com/not-fl3/nanoserde"
 
 [features]
-default = ["binary", "json", "ron", "toml", "std"]
+default = ["all"]
+all = ["binary", "json", "ron", "toml", "std", "glam", "intmap"]
 
 binary = ["dep:nanoserde-derive", "nanoserde-derive/binary"]
 json = ["dep:nanoserde-derive", "nanoserde-derive/json"]
