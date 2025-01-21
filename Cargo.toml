@@ -19,5 +19,11 @@ toml = []
 
 std = []
 
+glam = ["dep:glam"]
+intmap = ["dep:intmap"]
+
 [dependencies]
 nanoserde-derive = { path = "derive", version = "=0.2.1", optional = true }
+
+intmap = { version="*", optional=true }
+glam = { version="*", optional=true }
