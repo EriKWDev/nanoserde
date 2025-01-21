@@ -43,7 +43,13 @@ mod toml;
 pub use crate::toml::*;
 
 #[cfg(feature = "glam")]
+#[path = "./external/glam.rs"]
 pub mod glam;
 
 #[cfg(feature = "intmap")]
+#[path = "./external/intmap.rs"]
 pub mod intmap;
+
+#[cfg(feature = "indexmap")]
+#[path = "./external/indexmap.rs"]
+pub mod indexmap;

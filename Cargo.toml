@@ -11,7 +11,7 @@ repository = "https://github.com/not-fl3/nanoserde"
 
 [features]
 default = ["all"]
-all = ["binary", "json", "ron", "toml", "std", "glam", "intmap"]
+all = ["binary", "json", "ron", "toml", "std", "glam", "intmap", "indexmap"]
 
 binary = ["dep:nanoserde-derive", "nanoserde-derive/binary"]
 json = ["dep:nanoserde-derive", "nanoserde-derive/json"]
@@ -22,9 +22,11 @@ std = []
 
 glam = ["dep:glam"]
 intmap = ["dep:intmap"]
+indexmap = ["dep:indexmap"]
 
 [dependencies]
 nanoserde-derive = { path = "derive", version = "=0.2.1", optional = true }
 
+indexmap = { version="*", optional=true }
 intmap = { version="*", optional=true }
 glam = { version="*", optional=true }
