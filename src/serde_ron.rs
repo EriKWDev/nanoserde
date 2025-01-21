@@ -899,9 +899,10 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<T> SerRon for std::collections::HashSet<T>
+impl<T, S> SerRon for std::collections::HashSet<T, S>
 where
     T: SerRon,
+    S: std::hash::BuildHasher,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
         s.out.push('[');
@@ -920,12 +921,13 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<T> DeRon for std::collections::HashSet<T>
+impl<T, S> DeRon for std::collections::HashSet<T, S>
 where
     T: DeRon + core::hash::Hash + Eq,
+    S: std::hash::BuildHasher + Default,
 {
     fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
-        let mut out = std::collections::HashSet::new();
+        let mut out = std::collections::HashSet::with_hasher(S::default());
         s.block_open(i)?;
 
         while s.tok != DeRonTok::BlockClose {
@@ -1207,10 +1209,11 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V> SerRon for std::collections::HashMap<K, V>
+impl<K, V, S> SerRon for std::collections::HashMap<K, V, S>
 where
     K: SerRon,
     V: SerRon,
+    S: std::hash::BuildHasher,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
         s.out.push('{');
@@ -1227,13 +1230,14 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V> DeRon for std::collections::HashMap<K, V>
+impl<K, V, S> DeRon for std::collections::HashMap<K, V, S>
 where
     K: DeRon + Eq + core::hash::Hash,
     V: DeRon,
+    S: std::hash::BuildHasher + Default,
 {
     fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
-        let mut h = std::collections::HashMap::new();
+        let mut h = std::collections::HashMap::with_hasher(S::default());
         s.curly_open(i)?;
         while s.tok != DeRonTok::CurlyClose {
             let k = DeRon::de_ron(s, i)?;

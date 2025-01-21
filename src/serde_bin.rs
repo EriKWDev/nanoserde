@@ -329,9 +329,10 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<T> SerBin for std::collections::HashSet<T>
+impl<T, S> SerBin for std::collections::HashSet<T, S>
 where
     T: SerBin,
+    S: std::hash::BuildHasher,
 {
     fn ser_bin(&self, s: &mut Vec<u8>) {
         let len = self.len();
@@ -343,13 +344,14 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<T> DeBin for std::collections::HashSet<T>
+impl<T, S> DeBin for std::collections::HashSet<T, S>
 where
     T: DeBin + core::hash::Hash + Eq,
+    S: std::hash::BuildHasher + Default,
 {
     fn de_bin(o: &mut usize, d: &[u8]) -> Result<Self, DeBinErr> {
         let len: usize = DeBin::de_bin(o, d)?;
-        let mut out = std::collections::HashSet::with_capacity(len);
+        let mut out = std::collections::HashSet::with_capacity_and_hasher(len, S::default());
         for _ in 0..len {
             out.insert(DeBin::de_bin(o, d)?);
         }
@@ -573,10 +575,11 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V> SerBin for std::collections::HashMap<K, V>
+impl<K, V, S> SerBin for std::collections::HashMap<K, V, S>
 where
     K: SerBin,
     V: SerBin,
+    S: std::hash::BuildHasher,
 {
     fn ser_bin(&self, s: &mut Vec<u8>) {
         let len = self.len();
@@ -589,14 +592,15 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<K, V> DeBin for std::collections::HashMap<K, V>
+impl<K, V, S> DeBin for std::collections::HashMap<K, V, S>
 where
     K: DeBin + core::cmp::Eq + core::hash::Hash,
     V: DeBin,
+    S: std::hash::BuildHasher + Default,
 {
     fn de_bin(o: &mut usize, d: &[u8]) -> Result<Self, DeBinErr> {
         let len: usize = DeBin::de_bin(o, d)?;
-        let mut h = std::collections::HashMap::with_capacity(len);
+        let mut h = std::collections::HashMap::with_capacity_and_hasher(len, S::default());
         for _ in 0..len {
             let k = DeBin::de_bin(o, d)?;
             let v = DeBin::de_bin(o, d)?;
