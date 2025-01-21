@@ -20,7 +20,7 @@ where
 #[cfg(feature = "binary")]
 impl<K: intmap::IntKey, V> DeBin for intmap::IntMap<K, V>
 where
-    K: DeBin + core::cmp::Eq + core::hash::Hash,
+    K: DeBin,
     V: DeBin,
 {
     fn de_bin(o: &mut usize, d: &[u8]) -> Result<Self, DeBinErr> {
@@ -63,7 +63,7 @@ where
 #[cfg(feature = "ron")]
 impl<K: intmap::IntKey, V> DeRon for intmap::IntMap<K, V>
 where
-    K: DeRon + core::cmp::Eq + core::hash::Hash,
+    K: DeRon,
     V: DeRon,
 {
     fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
