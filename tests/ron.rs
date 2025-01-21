@@ -663,6 +663,7 @@ fn ron_crate() {
     assert_eq!(test.d.unwrap(), "hello");
 }
 
+<<<<<<< HEAD
 #[test]
 fn no_whitespace_when_serialized() {
     // A vec of every type which implements `SerRon`. Actual values were picked arbitrarily.
@@ -813,3 +814,70 @@ fn std_time() {
     let deserialized_none: SystemTime = DeRon::deserialize_ron(none).unwrap();
     assert_eq!(deserialized_none, SystemTime::UNIX_EPOCH);
 }
+
+
+#[cfg(feature = "glam")]
+pub mod glam_tests {
+    use super::*;
+
+    #[test]
+    fn ron_glam_roundtrips() {
+        let test = glam::vec3(0.0, 10.0, -20.0);
+        let string = SerRon::serialize_ron(&test);
+        let test_deserialized = DeRon::deserialize_ron(&string).unwrap();
+        assert_eq!(test, test_deserialized);
+
+        let test = glam::Mat4::IDENTITY;
+        let string = SerRon::serialize_ron(&test);
+        let test_deserialized = DeRon::deserialize_ron(&string).unwrap();
+        assert_eq!(test, test_deserialized);
+
+        let test = glam::DVec4::NEG_Z * 3.0;
+        let string = SerRon::serialize_ron(&test);
+        let test_deserialized = DeRon::deserialize_ron(&string).unwrap();
+        assert_eq!(test, test_deserialized);
+
+        #[derive(DeRon, SerRon, PartialEq)]
+        struct Container {
+            a: f32,
+            another: [u32; 4],
+            glam_0: glam::Vec3,
+            glam_1: glam::Mat4,
+        }
+
+        let test = Container {
+            a: 1337.0,
+            another: [32489, 3294, 192378, 2938],
+            glam_0: glam::vec3(213.0, 839.0, 3893.0),
+            glam_1: glam::Mat4::from_scale_rotation_translation(
+                glam::Vec3::ONE * 2.0,
+                glam::Quat::from_rotation_x(0.3),
+                glam::vec3(10.0, 23.0, 0.2),
+            ),
+        };
+        let string = SerRon::serialize_ron(&test);
+        let test_deserialized = DeRon::deserialize_ron(&string).unwrap();
+        assert!(test == test_deserialized);
+    }
+}
+
+#[cfg(feature = "intmap")]
+pub mod intmap_tests {
+    use super::*;
+
+    #[test]
+    fn ron_intmap_roundtrips() {
+        let mut test = intmap::IntMap::new();
+
+        test.insert(239_u32, (true, 10.0_f32, 20_u8));
+        test.insert(29_u32, (false, 15.0_f32, 50_u8));
+        test.insert(3_u32, (true, 10.0_f32, 20_u8));
+        test.insert(390983_u32, (false, 50.0_f32, 123_u8));
+        test.insert(204239_u32, (true, 13.0_f32, 26_u8));
+
+        let string = SerRon::serialize_ron(&test);
+        let test_deserialized = DeRon::deserialize_ron(&string).unwrap();
+        assert!(test == test_deserialized);
+    }
+}
+
