@@ -20,6 +20,8 @@ toml = []
 
 std = []
 
+# optional, external implementations
+smallvec = ["dep:smallvec"]
 indexmap = ["dep:indexmap"]
 intmap = ["dep:intmap"]
 glam = ["dep:glam"]
@@ -27,6 +29,8 @@ glam = ["dep:glam"]
 [dependencies]
 nanoserde-derive = { path = "derive", version = "=0.2.1", optional = true }
 
+# optional, external implementations
+smallvec = { version="*", optional=true }
 indexmap = { version="*", optional=true }
 intmap = { version="*", optional=true }
 glam = { version="*", optional=true }

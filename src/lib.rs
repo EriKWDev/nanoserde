@@ -42,6 +42,8 @@ mod toml;
 #[cfg(feature = "toml")]
 pub use crate::toml::*;
 
+// external crates below
+
 #[cfg(feature = "glam")]
 #[path = "./external/glam.rs"]
 pub mod glam;
@@ -53,3 +55,7 @@ pub mod intmap;
 #[cfg(feature = "indexmap")]
 #[path = "./external/indexmap.rs"]
 pub mod indexmap;
+
+#[cfg(feature = "smallvec")]
+#[path = "./external/smallvec.rs"]
+pub mod smallvec;
