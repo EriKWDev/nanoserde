@@ -37,6 +37,37 @@ where
     }
 }
 
+#[cfg(feature = "binary")]
+impl<K, S> SerBin for indexmap::IndexSet<K, S>
+where
+    K: SerBin,
+    S: std::hash::BuildHasher + Default,
+{
+    fn ser_bin(&self, s: &mut Vec<u8>) {
+        let len = self.len();
+        len.ser_bin(s);
+        for item in self.iter() {
+            item.ser_bin(s);
+        }
+    }
+}
+
+#[cfg(feature = "binary")]
+impl<K, S> DeBin for indexmap::IndexSet<K, S>
+where
+    K: DeBin + std::hash::Hash + Eq,
+    S: std::hash::BuildHasher + Default,
+{
+    fn de_bin(o: &mut usize, d: &[u8]) -> Result<Self, DeBinErr> {
+        let len: usize = DeBin::de_bin(o, d)?;
+        let mut out = indexmap::IndexSet::with_capacity_and_hasher(len, S::default());
+        for _ in 0..len {
+            out.insert(DeBin::de_bin(o, d)?);
+        }
+        Ok(out)
+    }
+}
+
 #[cfg(feature = "ron")]
 use crate::{DeRon, DeRonErr, DeRonState, DeRonTok, SerRon, SerRonState};
 #[cfg(feature = "ron")]
@@ -82,5 +113,45 @@ where
         }
         s.curly_close(i)?;
         Ok(h)
+    }
+}
+
+#[cfg(feature = "ron")]
+impl<K, S> SerRon for indexmap::IndexSet<K, S>
+where
+    K: SerRon,
+    S: std::hash::BuildHasher,
+{
+    fn ser_ron(&self, d: usize, s: &mut SerRonState) {
+        s.out.push('[');
+        if !self.is_empty() {
+            let last = self.len() - 1;
+            for (index, item) in self.iter().enumerate() {
+                s.indent(d + 1);
+                item.ser_ron(d + 1, s);
+                if index != last {
+                    s.out.push(',');
+                }
+            }
+        }
+        s.out.push(']');
+    }
+}
+
+#[cfg(feature = "ron")]
+impl<K, S> DeRon for indexmap::IndexSet<K, S>
+where
+    K: DeRon + std::hash::Hash + Eq,
+    S: std::hash::BuildHasher + Default,
+{
+    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+        let mut out = indexmap::IndexSet::with_hasher(S::default());
+        s.block_open(i)?;
+        while s.tok != DeRonTok::BlockClose {
+            out.insert(DeRon::de_ron(s, i)?);
+            s.eat_comma_block(i)?;
+        }
+        s.block_close(i)?;
+        Ok(out)
     }
 }
