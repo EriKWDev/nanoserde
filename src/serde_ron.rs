@@ -905,17 +905,15 @@ where
     S: std::hash::BuildHasher,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('[');
+        s.out.push_str("[\n");
         if !self.is_empty() {
-            let last = self.len() - 1;
-            for (index, item) in self.iter().enumerate() {
+            for item in self.iter() {
                 s.indent(d + 1);
                 item.ser_ron(d + 1, s);
-                if index != last {
-                    s.out.push(',');
-                }
+                s.conl();
             }
         }
+        s.indent(d);
         s.out.push(']');
     }
 }
@@ -981,17 +979,15 @@ where
     T: SerRon,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('[');
+        s.out.push_str("[\n");
         if !self.is_empty() {
-            let last = self.len() - 1;
-            for (index, item) in self.iter().enumerate() {
+            for item in self.iter() {
                 s.indent(d + 1);
                 item.ser_ron(d + 1, s);
-                if index != last {
-                    s.out.push(',');
-                }
+                s.conl();
             }
         }
+        s.indent(d);
         s.out.push(']');
     }
 }
