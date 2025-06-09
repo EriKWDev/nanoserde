@@ -13,10 +13,10 @@ pub struct SerRonState {
 }
 
 impl SerRonState {
-    pub fn indent(&mut self, _d: usize) {
-        // for _ in 0..d {
-        //     self.out.push_str("    ");
-        // }
+    pub fn indent(&mut self, d: usize) {
+        for _ in 0..d {
+            self.out.push_str("    ");
+        }
     }
 
     pub fn field(&mut self, d: usize, field: &str) {
@@ -26,11 +26,11 @@ impl SerRonState {
     }
 
     pub fn conl(&mut self) {
-        self.out.push(',')
+        self.out.push_str(",\n")
     }
 
     pub fn st_pre(&mut self) {
-        self.out.push('(');
+        self.out.push_str("(\n");
     }
 
     pub fn st_post(&mut self, d: usize) {
@@ -870,7 +870,7 @@ where
     T: SerRon,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('[');
+        s.out.push_str("[\n");
         for item in self {
             s.indent(d + 1);
             item.ser_ron(d + 1, s);
@@ -942,14 +942,14 @@ where
     T: SerRon,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('[');
+        s.out.push_str("[\n");
         if !self.is_empty() {
             let last = self.len() - 1;
             for (index, item) in self.iter().enumerate() {
                 s.indent(d + 1);
                 item.ser_ron(d + 1, s);
                 if index != last {
-                    s.out.push(',');
+                    s.out.push_str(", ");
                 }
             }
         }
@@ -1019,7 +1019,7 @@ where
         for (index, item) in self.iter().enumerate() {
             item.ser_ron(d + 1, s);
             if index != last {
-                s.out.push(',');
+                s.out.push_str(", ");
             }
         }
         s.out.push(')');
@@ -1110,7 +1110,7 @@ where
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
         s.out.push('(');
         self.0.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.1.ser_ron(d, s);
         s.out.push(')');
     }
@@ -1138,9 +1138,9 @@ where
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
         s.out.push('(');
         self.0.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.1.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.2.ser_ron(d, s);
         s.out.push(')');
     }
@@ -1174,11 +1174,11 @@ where
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
         s.out.push('(');
         self.0.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.1.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.2.ser_ron(d, s);
-        s.out.push(',');
+        s.out.push_str(", ");
         self.3.ser_ron(d, s);
         s.out.push(')');
     }
@@ -1212,7 +1212,7 @@ where
     S: std::hash::BuildHasher,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('{');
+        s.out.push_str("{\n");
         for (k, v) in self {
             s.indent(d + 1);
             k.ser_ron(d + 1, s);
@@ -1253,7 +1253,7 @@ where
     V: SerRon,
 {
     fn ser_ron(&self, d: usize, s: &mut SerRonState) {
-        s.out.push('{');
+        s.out.push_str("{\n");
         for (k, v) in self {
             s.indent(d + 1);
             k.ser_ron(d + 1, s);

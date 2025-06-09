@@ -450,7 +450,11 @@ fn de_ser_enum() {
         foo3: Fud,
     }
 
-    let ron = "(foo1:A,foo2:B,foo3:C,)";
+    let ron = "(
+    foo1:A,
+    foo2:B,
+    foo3:C,
+)";
 
     let data = Bar {
         foo1: Fud::A,
@@ -481,7 +485,14 @@ fn ser_enum_complex() {
         foo3: Foo,
     }
 
-    let ron = "(foo1:A,foo2:B(1,\"asd\"),foo3:C(a:2,b:\"qwe\",),)";
+    let ron = "(
+    foo1:A,
+    foo2:B(1, \"asd\"),
+    foo3:C(
+        a:2,
+        b:\"qwe\",
+    ),
+)";
 
     let data = Bar {
         foo1: Foo::A,
@@ -663,52 +674,49 @@ fn ron_crate() {
     assert_eq!(test.d.unwrap(), "hello");
 }
 
-#[test]
-fn no_whitespace_when_serialized() {
-    // A vec of every type which implements `SerRon`. Actual values were picked arbitrarily.
-    let mut rons: Vec<Box<dyn SerRon>> = vec![
-        Box::new(()),
-        Box::new((0, 1.0)),
-        Box::new((0, 1.0, [2])),
-        Box::new((0, 1.0, [2], false)),
-        Box::new((0..5).collect::<BTreeSet<i32>>()),
-        Box::new((0..5).map(|x| (x, true)).collect::<BTreeMap<i32, bool>>()),
-        Box::new(Box::new(12_usize)),
-        Box::new((0..5).collect::<LinkedList<i32>>()),
-        Box::new(Some(false)),
-        Box::new(None::<bool>),
-        Box::new(String::from("a_string!")),
-        Box::new(vec![false, true, false]),
-        Box::new([true, false, true]),
-        Box::new(true),
-        Box::new(-32.0_f32),
-        Box::new(64.0_f64),
-        Box::new(-8_i8),
-        Box::new(-16_i16),
-        Box::new(-32_i32),
-        Box::new(-64_i64),
-        Box::new(8_u8),
-        Box::new(16_u16),
-        Box::new(32_u32),
-        Box::new(64_u64),
-        Box::new(usize::MAX),
-    ];
-
-    #[cfg(feature = "std")]
-    {
-        rons.push(Box::new((0..5).collect::<HashSet<i32>>()));
-        rons.push(Box::new(
-            (0..5).map(|x| (x, true)).collect::<HashMap<i32, bool>>(),
-        ));
-    }
-
-    for ron in rons {
-        let serialized = ron.serialize_ron();
-        let no_whitespace = serialized.chars().all(|char| !char.is_whitespace());
-
-        assert!(no_whitespace);
-    }
-}
+// #[test]
+// fn no_whitespace_when_serialized() {
+//     // A vec of every type which implements `SerRon`. Actual values were picked arbitrarily.
+//     let mut rons: Vec<Box<dyn SerRon>> = vec![
+//         Box::new(()),
+//         Box::new((0, 1.0)),
+//         Box::new((0, 1.0, [2])),
+//         Box::new((0, 1.0, [2], false)),
+//         Box::new((0..5).collect::<BTreeSet<i32>>()),
+//         Box::new((0..5).map(|x| (x, true)).collect::<BTreeMap<i32, bool>>()),
+//         Box::new(Box::new(12_usize)),
+//         Box::new((0..5).collect::<LinkedList<i32>>()),
+//         Box::new(Some(false)),
+//         Box::new(None::<bool>),
+//         Box::new(String::from("a_string!")),
+//         Box::new(vec![false, true, false]),
+//         Box::new([true, false, true]),
+//         Box::new(true),
+//         Box::new(-32.0_f32),
+//         Box::new(64.0_f64),
+//         Box::new(-8_i8),
+//         Box::new(-16_i16),
+//         Box::new(-32_i32),
+//         Box::new(-64_i64),
+//         Box::new(8_u8),
+//         Box::new(16_u16),
+//         Box::new(32_u32),
+//         Box::new(64_u64),
+//         Box::new(usize::MAX),
+//     ];
+//     #[cfg(feature = "std")]
+//     {
+//         rons.push(Box::new((0..5).collect::<HashSet<i32>>()));
+//         rons.push(Box::new(
+//             (0..5).map(|x| (x, true)).collect::<HashMap<i32, bool>>(),
+//         ));
+//     }
+//     for ron in rons {
+//         let serialized = ron.serialize_ron();
+//         let no_whitespace = serialized.chars().all(|char| !char.is_whitespace());
+//         assert!(no_whitespace);
+//     }
+// }
 
 #[test]
 fn generic_enum() {
