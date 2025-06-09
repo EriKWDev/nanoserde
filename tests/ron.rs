@@ -663,7 +663,6 @@ fn ron_crate() {
     assert_eq!(test.d.unwrap(), "hello");
 }
 
-<<<<<<< HEAD
 #[test]
 fn no_whitespace_when_serialized() {
     // A vec of every type which implements `SerRon`. Actual values were picked arbitrarily.
@@ -815,6 +814,16 @@ fn std_time() {
     assert_eq!(deserialized_none, SystemTime::UNIX_EPOCH);
 }
 
+#[test]
+fn struct_skip_all_fields() {
+    #[derive(SerRon, DeRon)]
+    pub struct Test {
+        #[nserde(skip)]
+        pub field_a: usize,
+        #[nserde(skip)]
+        pub field_b: u64,
+    }
+}
 
 #[cfg(feature = "glam")]
 pub mod glam_tests {
@@ -880,4 +889,3 @@ pub mod intmap_tests {
         assert!(test == test_deserialized);
     }
 }
-

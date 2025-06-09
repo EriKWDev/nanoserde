@@ -225,7 +225,7 @@ pub fn derive_de_ron_named(
             );
         }
         format!(
-            "match s.identbuf.as_ref() {{
+            "match AsRef::<str>::as_ref(&s.identbuf) {{
                 {}
                 _ => return ::core::result::Result::Err(s.err_exp(&s.identbuf))
             }}",
@@ -503,7 +503,7 @@ pub fn derive_de_ron_enum(enum_: &Enum, crate_name: &str) -> TokenStream {
             fn de_ron(s: &mut {}::DeRonState, i: &mut core::str::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
                 // we are expecting an identifier
                 s.ident(i)?;
-                ::core::result::Result::Ok(match s.identbuf.as_ref() {{
+                ::core::result::Result::Ok(match AsRef::<str>::as_ref(&s.identbuf) {{
                     {}
                     _ => return ::core::result::Result::Err(s.err_enum(&s.identbuf))
                 }})
