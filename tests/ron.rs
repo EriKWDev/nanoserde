@@ -33,6 +33,18 @@ fn ron_de() {
 }
 
 #[test]
+fn u128_roundtrip_and_boundaries() {
+    for value in [0, u64::MAX as u128, u64::MAX as u128 + 1, u128::MAX] {
+        let serialized = value.serialize_ron();
+        assert_eq!(serialized, value.to_string());
+        assert_eq!(u128::deserialize_ron(&serialized).unwrap(), value);
+    }
+
+    assert!(u64::deserialize_ron(&(u64::MAX as u128 + 1).to_string()).is_err());
+    assert!(u128::deserialize_ron("340282366920938463463374607431768211456").is_err());
+}
+
+#[test]
 fn de_container_default() {
     #[derive(DeRon)]
     #[nserde(default)]

@@ -98,6 +98,7 @@ pub enum DeRonTok {
     Ident,
     Str,
     U64(u64),
+    U128(u128),
     I64(i64),
     F64(f64),
     Bool(bool),
@@ -382,6 +383,9 @@ impl DeRonState {
             }
             return Ok(value);
         }
+        if let DeRonTok::U128(value) = self.tok {
+            return Err(self.err_range(&format!("{}>{}", value, max)));
+        }
         Err(self.err_token("unsigned integer"))
     }
 
@@ -408,6 +412,9 @@ impl DeRonState {
         if let DeRonTok::U64(value) = self.tok {
             return Ok(value as f64);
         }
+        if let DeRonTok::U128(value) = self.tok {
+            return Ok(value as f64);
+        }
         if let DeRonTok::F64(value) = self.tok {
             return Ok(value);
         }
@@ -419,6 +426,9 @@ impl DeRonState {
             return Ok(value);
         }
         if let DeRonTok::U64(value) = self.tok {
+            return Ok(value != 0);
+        }
+        if let DeRonTok::U128(value) = self.tok {
             return Ok(value != 0);
         }
         Err(self.err_token("boolean"))
@@ -562,8 +572,11 @@ impl DeRonState {
                                 return Err(self.err_parse("number"));
                             }
                         }
-                        if let Ok(num) = self.numbuf.parse() {
-                            self.tok = DeRonTok::U64(num);
+                        if let Ok(num) = self.numbuf.parse::<u128>() {
+                            self.tok = match u64::try_from(num) {
+                                Ok(num) => DeRonTok::U64(num),
+                                Err(_) => DeRonTok::U128(num),
+                            };
                             return Ok(());
                         } else {
                             return Err(self.err_parse("number"));
@@ -765,6 +778,23 @@ macro_rules! impl_ser_de_ron_float {
 
 impl_ser_de_ron_unsigned!(usize, u64::MAX);
 impl_ser_de_ron_unsigned!(u64, u64::MAX);
+impl SerRon for u128 {
+    fn ser_ron(&self, _d: usize, s: &mut SerRonState) {
+        s.out.push_str(&self.to_string());
+    }
+}
+
+impl DeRon for u128 {
+    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+        let value = match s.tok {
+            DeRonTok::U64(value) => value as u128,
+            DeRonTok::U128(value) => value,
+            _ => return Err(s.err_token("u128")),
+        };
+        s.next_tok(i)?;
+        Ok(value)
+    }
+}
 impl_ser_de_ron_unsigned!(u32, u32::MAX);
 impl_ser_de_ron_unsigned!(u16, u16::MAX);
 impl_ser_de_ron_unsigned!(u8, u8::MAX);
