@@ -42,6 +42,11 @@ pub fn derive_ser_bin_struct(struct_: &Struct, crate_name: &str) -> TokenStream 
         struct_bounds_strings(struct_, "SerBin", crate_name);
 
     for field in struct_.fields.iter().filter(|f| !attrs_skip(&f.attributes)) {
+        let only_when_runtime_fields_are_included =
+            crate::shared::attrs_runtime(&field.attributes);
+        if only_when_runtime_fields_are_included {
+            l!(body, "if {}::runtime_fields::included() {{", crate_name);
+        }
         if let Some(proxy) = crate::shared::attrs_proxy(&field.attributes) {
             l!(
                 body,
@@ -56,6 +61,9 @@ pub fn derive_ser_bin_struct(struct_: &Struct, crate_name: &str) -> TokenStream 
                 "self.{}.ser_bin(s);",
                 field.field_name.as_ref().unwrap()
             );
+        }
+        if only_when_runtime_fields_are_included {
+            l!(body, "}");
         }
     }
     format!(
@@ -120,6 +128,26 @@ pub fn derive_de_bin_struct(struct_: &Struct, crate_name: &str) -> TokenStream {
     let (generic_w_bounds, generic_no_bounds) = struct_bounds_strings(struct_, "DeBin", crate_name);
 
     for field in struct_.fields.iter().filter(|f| !attrs_skip(&f.attributes)) {
+        let only_when_runtime_fields_are_included =
+            crate::shared::attrs_runtime(&field.attributes);
+        if only_when_runtime_fields_are_included {
+            l!(body, "{}: if !{}::runtime_fields::included() {{", field.field_name.as_ref().unwrap(), crate_name);
+            l!(body, "Default::default()");
+            l!(body, "} else {");
+            if let Some(proxy) = crate::shared::attrs_proxy(&field.attributes) {
+                l!(
+                    body,
+                    "let proxy: {} = {}::DeBin::de_bin(o, d)?;",
+                    proxy,
+                    crate_name
+                );
+                l!(body, "Into::into(&proxy)");
+            } else {
+                l!(body, "{}::DeBin::de_bin(o, d)?", crate_name);
+            }
+            l!(body, "},");
+            continue;
+        }
         if let Some(proxy) = crate::shared::attrs_proxy(&field.attributes) {
             l!(body, "{}: {{", field.field_name.as_ref().unwrap());
             l!(

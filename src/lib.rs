@@ -22,6 +22,10 @@ extern crate alloc;
 #[cfg(any(feature = "binary", feature = "json", feature = "ron"))]
 pub use nanoserde_derive::*;
 
+/// Fields written as `#[nserde(runtime)]` carry state that only belongs in a user's save, such as
+/// animation progress or simulated positions, and are written only while this is switched on.
+pub mod runtime_fields;
+
 #[cfg(feature = "binary")]
 mod serde_bin;
 #[cfg(feature = "binary")]

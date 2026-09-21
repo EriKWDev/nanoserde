@@ -543,3 +543,42 @@ pub mod intmap_tests {
         assert!(test == test_deserialized);
     }
 }
+
+#[test]
+fn runtime_fields_are_in_the_bytes_only_while_they_are_included() {
+    #[derive(DeBin, SerBin, Debug, PartialEq, Default)]
+    struct Fish {
+        name: String,
+        #[nserde(runtime)]
+        swim_progress: f32,
+        #[nserde(runtime)]
+        boids: Vec<f32>,
+        colour: u32,
+    }
+
+    let fish = Fish {
+        name: "carp".to_string(),
+        swim_progress: 0.75,
+        boids: vec![1.0, 2.0],
+        colour: 7,
+    };
+
+    let level = SerBin::serialize_bin(&fish);
+    let save = nanoserde::runtime_fields::while_included(true, || SerBin::serialize_bin(&fish));
+    assert!(level.len() < save.len());
+
+    let from_level: Fish = DeBin::deserialize_bin(&level).unwrap();
+    assert_eq!(
+        from_level,
+        Fish {
+            name: "carp".to_string(),
+            swim_progress: 0.0,
+            boids: vec![],
+            colour: 7,
+        }
+    );
+
+    let from_save: Fish =
+        nanoserde::runtime_fields::while_included(true, || DeBin::deserialize_bin(&save)).unwrap();
+    assert_eq!(from_save, fish);
+}

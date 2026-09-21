@@ -28,7 +28,7 @@ pub fn derive_ser_ron_proxy(proxy_type: &str, type_: &str, crate_name: &str) -> 
 pub fn derive_de_ron_proxy(proxy_type: &str, type_: &str, crate_name: &str) -> TokenStream {
     format!(
         "impl {}::DeRon for {} {{
-            fn de_ron(_s: &mut {}::DeRonState, i: &mut core::str::Chars) -> ::core::result::Result<Self, {}::DeRonErr> {{
+            fn de_ron(_s: &mut {}::DeRonState, i: &mut {crate_name}::Chars) -> ::core::result::Result<Self, {}::DeRonErr> {{
                 let proxy: {} = {}::DeRon::deserialize_ron(i)?;
                 ::core::result::Result::Ok(Into::into(&proxy))
             }}
@@ -52,6 +52,10 @@ pub fn derive_ser_ron_struct(struct_: &Struct, crate_name: &str) -> TokenStream 
         if skip {
             continue;
         }
+        let only_when_runtime_fields_are_included = shared::attrs_runtime(&field.attributes);
+        if only_when_runtime_fields_are_included {
+            l!(s, "if {}::runtime_fields::included() {{", crate_name);
+        }
         if field.ty.base() == "Option" {
             l!(
                 s,
@@ -72,6 +76,9 @@ pub fn derive_ser_ron_struct(struct_: &Struct, crate_name: &str) -> TokenStream 
                 ron_fieldname,
                 struct_fieldname
             );
+        }
+        if only_when_runtime_fields_are_included {
+            l!(s, "}");
         }
     }
 
@@ -175,7 +182,11 @@ pub fn derive_de_ron_named(
         } else if let Some(mut v) = field_attr_default_with {
             v.push_str("()");
             Some(v)
-        } else if container_attr_default || field_attr_skip || field_is_option {
+        } else if container_attr_default
+            || field_attr_skip
+            || field_is_option
+            || shared::attrs_runtime(&field.attributes)
+        {
             Some(String::from("Default::default()"))
         } else {
             None
@@ -227,7 +238,10 @@ pub fn derive_de_ron_named(
         format!(
             "match AsRef::<str>::as_ref(&s.identbuf) {{
                 {}
-                _ => return ::core::result::Result::Err(s.err_exp(&s.identbuf))
+                _ => {{
+                    s.next_colon(i)?;
+                    s.skip_value(i)?;
+                }}
             }}",
             inner
         )
@@ -272,7 +286,7 @@ pub fn derive_de_ron_struct(struct_: &Struct, crate_name: &str) -> TokenStream {
 
     format!(
         "impl{} {}::DeRon for {}{} {{
-            fn de_ron(s: &mut {}::DeRonState, i: &mut core::str::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
+            fn de_ron(s: &mut {}::DeRonState, i: &mut {crate_name}::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
                 ::core::result::Result::Ok({})
             }}
         }}", 
@@ -309,7 +323,7 @@ pub fn derive_de_ron_struct_unnamed(struct_: &Struct, crate_name: &str) -> Token
 
     format! ("
         impl{} {}::DeRon for {}{} {{
-            fn de_ron(s: &mut {}::DeRonState, i: &mut core::str::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
+            fn de_ron(s: &mut {}::DeRonState, i: &mut {crate_name}::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
                 s.paren_open(i)?;
                 let r = Self({});
                 s.paren_close(i)?;
@@ -500,7 +514,7 @@ pub fn derive_de_ron_enum(enum_: &Enum, crate_name: &str) -> TokenStream {
 
     format! ("
         impl{} {}::DeRon for {}{} {{
-            fn de_ron(s: &mut {}::DeRonState, i: &mut core::str::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
+            fn de_ron(s: &mut {}::DeRonState, i: &mut {crate_name}::Chars) -> ::core::result::Result<Self,{}::DeRonErr> {{
                 // we are expecting an identifier
                 s.ident(i)?;
                 ::core::result::Result::Ok(match AsRef::<str>::as_ref(&s.identbuf) {{

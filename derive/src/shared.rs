@@ -67,6 +67,13 @@ pub fn attrs_transparent(attributes: &[crate::parse::Attribute]) -> bool {
 }
 
 #[cfg(any(feature = "json", feature = "ron", feature = "binary"))]
+pub fn attrs_runtime(attributes: &[crate::parse::Attribute]) -> bool {
+    attributes
+        .iter()
+        .any(|attr| attr.tokens.len() == 1 && attr.tokens[0] == "runtime")
+}
+
+#[cfg(any(feature = "json", feature = "ron", feature = "binary"))]
 pub fn attrs_skip(attributes: &[crate::parse::Attribute]) -> bool {
     attributes
         .iter()

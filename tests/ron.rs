@@ -897,3 +897,89 @@ pub mod intmap_tests {
         assert!(test == test_deserialized);
     }
 }
+
+#[test]
+fn keys_the_struct_no_longer_has_are_skipped() {
+    #[derive(DeRon, SerRon, Debug, PartialEq)]
+    struct Inner {
+        a: i32,
+        b: Vec<i32>,
+    }
+
+    #[derive(DeRon, SerRon, Debug, PartialEq)]
+    struct Kept {
+        first: i32,
+        inner: Inner,
+        last: String,
+    }
+
+    let written_before_the_fields_were_removed = r#"(
+        first: 1,
+        gone_scalar: 7,
+        inner: (
+            a: 2,
+            b: [1, 2, 3],
+        ),
+        gone_struct: (
+            x: 1,
+            y: [(z: 2), (z: 3)],
+        ),
+        gone_list: [1, 2, 3],
+        gone_string: "hello, ) ] }",
+        last: "end",
+    )"#;
+
+    let kept: Kept = DeRon::deserialize_ron(written_before_the_fields_were_removed).unwrap();
+    assert_eq!(
+        kept,
+        Kept {
+            first: 1,
+            inner: Inner {
+                a: 2,
+                b: vec![1, 2, 3]
+            },
+            last: "end".to_string(),
+        }
+    );
+}
+
+#[test]
+fn runtime_fields_are_written_only_while_they_are_included() {
+    #[derive(DeRon, SerRon, Debug, PartialEq, Default)]
+    struct Fish {
+        name: String,
+        #[nserde(runtime)]
+        swim_progress: f32,
+        #[nserde(runtime)]
+        boids: Vec<f32>,
+        colour: u32,
+    }
+
+    let fish = Fish {
+        name: "carp".to_string(),
+        swim_progress: 0.75,
+        boids: vec![1.0, 2.0],
+        colour: 7,
+    };
+
+    let level = SerRon::serialize_ron(&fish);
+    assert!(!level.contains("swim_progress"), "{level}");
+    assert!(!level.contains("boids"), "{level}");
+
+    let save = nanoserde::runtime_fields::while_included(true, || SerRon::serialize_ron(&fish));
+    assert!(save.contains("swim_progress"), "{save}");
+
+    let from_level: Fish = DeRon::deserialize_ron(&level).unwrap();
+    assert_eq!(
+        from_level,
+        Fish {
+            name: "carp".to_string(),
+            swim_progress: 0.0,
+            boids: vec![],
+            colour: 7,
+        }
+    );
+
+    let from_save: Fish = DeRon::deserialize_ron(&save).unwrap();
+    assert_eq!(from_save, fish);
+}

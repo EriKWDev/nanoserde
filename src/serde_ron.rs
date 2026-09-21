@@ -1,5 +1,7 @@
-use core::str::Chars;
+// use core::str::Chars;
 use core::{error::Error, time::Duration};
+
+pub type Chars<'a> = dyn Iterator<Item = char> + 'a;
 
 use alloc::boxed::Box;
 use alloc::collections::{BTreeMap, BTreeSet, LinkedList};
@@ -290,6 +292,42 @@ impl DeRonState {
             }
             DeRonTok::CurlyClose => Ok(()),
             _ => Err(self.err_token(", or }")),
+        }
+    }
+
+    /// Consumes the value the parser is standing on, however deeply nested, so that a key the
+    /// type no longer has does not stop the rest of it from being read.
+    pub fn skip_value(&mut self, i: &mut Chars) -> Result<(), DeRonErr> {
+        let mut depth = 0usize;
+        loop {
+            match self.tok {
+                DeRonTok::ParenOpen | DeRonTok::BlockOpen | DeRonTok::CurlyOpen => {
+                    depth += 1;
+                }
+                DeRonTok::ParenClose | DeRonTok::BlockClose | DeRonTok::CurlyClose => {
+                    if depth == 0 {
+                        return Ok(());
+                    }
+                    depth -= 1;
+                    if depth == 0 {
+                        self.next_tok(i)?;
+                        return Ok(());
+                    }
+                }
+                DeRonTok::Comma if depth == 0 => {
+                    return Ok(());
+                }
+                DeRonTok::Eof => {
+                    return Ok(());
+                }
+                _ => {
+                    if depth == 0 {
+                        self.next_tok(i)?;
+                        return Ok(());
+                    }
+                }
+            }
+            self.next_tok(i)?;
         }
     }
 
