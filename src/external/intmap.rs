@@ -37,8 +37,6 @@ where
 
 #[cfg(feature = "ron")]
 use crate::{DeRon, DeRonErr, DeRonState, DeRonTok, SerRon, SerRonState};
-#[cfg(feature = "ron")]
-use core::str::Chars;
 
 #[cfg(feature = "ron")]
 impl<K: intmap::IntKey, V> SerRon for intmap::IntMap<K, V>
@@ -66,7 +64,7 @@ where
     K: DeRon,
     V: DeRon,
 {
-    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+    fn de_ron(s: &mut DeRonState, i: &mut crate::Chars) -> Result<Self, DeRonErr> {
         let mut h = intmap::IntMap::new();
         s.curly_open(i)?;
         while s.tok != DeRonTok::CurlyClose {

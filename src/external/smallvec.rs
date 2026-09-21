@@ -32,8 +32,6 @@ where
 
 #[cfg(feature = "ron")]
 use crate::{DeRon, DeRonErr, DeRonState, DeRonTok, SerRon, SerRonState};
-#[cfg(feature = "ron")]
-use core::str::Chars;
 
 #[cfg(feature = "ron")]
 impl<A: smallvec::Array> SerRon for smallvec::SmallVec<A>
@@ -57,7 +55,7 @@ impl<A: smallvec::Array> DeRon for smallvec::SmallVec<A>
 where
     A::Item: DeRon,
 {
-    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+    fn de_ron(s: &mut DeRonState, i: &mut crate::Chars) -> Result<Self, DeRonErr> {
         let mut out = smallvec::SmallVec::<A>::new();
         s.block_open(i)?;
         while s.tok != DeRonTok::BlockClose {

@@ -70,8 +70,6 @@ where
 
 #[cfg(feature = "ron")]
 use crate::{DeRon, DeRonErr, DeRonState, DeRonTok, SerRon, SerRonState};
-#[cfg(feature = "ron")]
-use core::str::Chars;
 
 #[cfg(feature = "ron")]
 impl<K, V, S> SerRon for indexmap::IndexMap<K, V, S>
@@ -101,7 +99,7 @@ where
     V: DeRon,
     S: std::hash::BuildHasher + Default,
 {
-    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+    fn de_ron(s: &mut DeRonState, i: &mut crate::Chars) -> Result<Self, DeRonErr> {
         let mut h = indexmap::IndexMap::with_hasher(S::default());
         s.curly_open(i)?;
         while s.tok != DeRonTok::CurlyClose {
@@ -142,7 +140,7 @@ where
     K: DeRon + std::hash::Hash + Eq,
     S: std::hash::BuildHasher + Default,
 {
-    fn de_ron(s: &mut DeRonState, i: &mut Chars) -> Result<Self, DeRonErr> {
+    fn de_ron(s: &mut DeRonState, i: &mut crate::Chars) -> Result<Self, DeRonErr> {
         let mut out = indexmap::IndexSet::with_hasher(S::default());
         s.block_open(i)?;
         while s.tok != DeRonTok::BlockClose {

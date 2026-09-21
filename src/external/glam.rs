@@ -42,9 +42,9 @@ macro_rules! impl_glam_matrix_bin {
 }
 
 #[cfg(feature = "ron")]
-use crate::{DeRon, DeRonErr, DeRonState, SerRon, SerRonState};
+use crate::Chars;
 #[cfg(feature = "ron")]
-use core::str::Chars;
+use crate::{DeRon, DeRonErr, DeRonState, SerRon, SerRonState};
 
 #[cfg(feature = "ron")]
 macro_rules! impl_glam_vec_ron {
